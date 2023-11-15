@@ -1,6 +1,7 @@
 package com.cos.jwt.config;
 
 import com.cos.jwt.filter.MyFilter1;
+import com.cos.jwt.filter.MyFilter3;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +22,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        //http.addFilterBefore(new MyFilter1(),BasicAuthenticationFilter.class);
+        http.addFilterBefore(new MyFilter3(),BasicAuthenticationFilter.class); //시큐리티 진입전에 임시토큰 검사
 
         http.csrf().disable();
 
