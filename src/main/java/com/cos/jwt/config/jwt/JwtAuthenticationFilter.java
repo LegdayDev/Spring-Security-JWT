@@ -1,5 +1,7 @@
 package com.cos.jwt.config.jwt;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.cos.jwt.config.auth.PrincipalDetails;
 import com.cos.jwt.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Date;
 
 // 스프링 시큐리티에서 UsernamePasswordAuthenticationFilter 가 있다.
 // /login 요청 시 username, password 를 POST 전송하면 UsernamePasswordAuthenticationFilter 가 동작
@@ -57,8 +60,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     // attemptAuthentication() 실행 후 인증이 정상적으로 되었으면 successfulAuthentication() 실행
     // 여기서 JWT 토큰을 만들어서 request 요청한 클라이언트에게 JWT 토큰을 응답해주면 된다.
     @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                            FilterChain chain, Authentication authResult) throws IOException, ServletException {
+        PrincipalDetails principalDetails = (PrincipalDetails) authResult.getPrincipal();
+
         System.out.println("successfulAuthentication 실행됨 : 로그인 인증 완료");
-        super.successfulAuthentication(request, response, chain, authResult);
+
+        // RSA 방식이 아닌 Hash 암호방식
+        String jwtToken = JWT.create()
+                .withSubject("cos 토큰") // 크게 상관없다하네요
+                .withExpiresAt(new Date(System.currentTimeMillis() + (60000*10))) // 만료시간(10분)
+                .withClaim("id", principalDetails.getUser().getId()) // withClaim 은 비공개 Claim 이니까 아무거나 넣어도댐 !
+                .withClaim("username", principalDetails.getUser().getUsername())
+                .sign(Algorithm.HMAC512("cos")); // 내 서버만 아는 고유한 값
+
+        response.addHeader("Authorization","Bearer "+jwtToken);
     }
 }
