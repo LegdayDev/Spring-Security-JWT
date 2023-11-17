@@ -68,12 +68,12 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // RSA 방식이 아닌 Hash 암호방식
         String jwtToken = JWT.create()
-                .withSubject("cos 토큰") // 크게 상관없다하네요
-                .withExpiresAt(new Date(System.currentTimeMillis() + (60000*10))) // 만료시간(10분)
+                .withSubject(principalDetails.getUsername()) // 크게 상관없다하네요
+                .withExpiresAt(new Date(System.currentTimeMillis() + JwtProperties.EXPIRATION_TIME)) // 만료시간(10분)
                 .withClaim("id", principalDetails.getUser().getId()) // withClaim 은 비공개 Claim 이니까 아무거나 넣어도댐 !
                 .withClaim("username", principalDetails.getUser().getUsername())
-                .sign(Algorithm.HMAC512("cos")); // 내 서버만 아는 고유한 값
+                .sign(Algorithm.HMAC512(JwtProperties.SECRET)); // 내 서버만 아는 고유한 값
 
-        response.addHeader("Authorization","Bearer "+jwtToken);
+        response.addHeader(JwtProperties.HEADER_STRING, JwtProperties.TOKEN_PREFIX+jwtToken);
     }
 }
